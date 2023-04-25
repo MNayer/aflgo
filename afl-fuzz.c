@@ -7870,7 +7870,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Qz:c:D:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnDCB:S:M:x:Qz:c:")) > 0)
 
     switch (opt) {
 
