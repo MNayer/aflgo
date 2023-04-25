@@ -7870,7 +7870,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Qz:c:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnCB:S:M:x:Qz:c:D:")) > 0)
 
     switch (opt) {
 
@@ -8077,7 +8077,7 @@ int main(int argc, char** argv) {
 
       case 'D':
 
-				mode_coverage = 1;
+        mode_coverage = 1;
 
         break;
 
@@ -8096,6 +8096,9 @@ int main(int argc, char** argv) {
       cooling_schedule == SAN_QUAD ? "QUAD" : "???",
       t_x
   );
+
+  if (mode_coverage)
+    OKF("Directed fuzzing has been disabled. Fuzzing in coverage mode.");
 
   setup_signal_handlers();
   check_asan_opts();
