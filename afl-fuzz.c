@@ -288,6 +288,7 @@ static double cur_distance = -1.0;     /* Distance of executed input       */
 static double max_distance = -1.0;     /* Maximal distance for any input   */
 static double min_distance = -1.0;     /* Minimal distance for any input   */
 static u32 t_x = 10;                  /* Time to exploitation (Default: 10 min) */
+static u8 mode_coverage = 0;          /* Coverage mode (1) or directed fuzzing (0) */
 
 static u8* (*post_handler)(u8* buf, u32* len);
 
@@ -4848,7 +4849,7 @@ static u32 calculate_score(struct queue_entry* q) {
   }
 
   double power_factor = 1.0;
-  if (q->distance > 0) {
+  if (q->distance > 0 && !mode_coverage) {
 
     double normalized_d = 0; // when "max_distance == min_distance", we set the normalized_d to 0 so that we can sufficiently explore those testcases whose distance >= 0.
     if (max_distance != min_distance)
@@ -7184,7 +7185,8 @@ static void usage(u8* argv0) {
        "  -z schedule   - temperature-based power schedules\n"
        "                  {exp, log, lin, quad} (Default: exp)\n"
        "  -c min        - time from start when SA enters exploitation\n"
-       "                  in secs (s), mins (m), hrs (h), or days (d)\n\n"
+       "                  in secs (s), mins (m), hrs (h), or days (d)\n"
+       "  -D            - disable directed fuzzing (set mode to 'coverage guided')\n\n"
 
        "Execution control settings:\n\n"
 
@@ -8070,6 +8072,12 @@ int main(int argc, char** argv) {
           }
 
         }
+
+        break;
+
+      case 'D':
+
+				mode_coverage = 1;
 
         break;
 
