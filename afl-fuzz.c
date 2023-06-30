@@ -2030,6 +2030,7 @@ EXP_ST void init_forkserver(char** argv) {
   s32 rlen;
 
   ACTF("Spinning up the fork server...");
+	ACTF("TEST TEST TEST TEST");
 
   if (pipe(st_pipe) || pipe(ctl_pipe)) PFATAL("pipe() failed");
 
