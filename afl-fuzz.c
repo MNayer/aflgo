@@ -4850,6 +4850,7 @@ static u32 calculate_score(struct queue_entry* q) {
 
   double power_factor = 1.0;
   if (q->distance > 0 && !mode_coverage) {
+		printf("DIRECTED DIRECTED DIRECTED\n");
 
     double normalized_d = 0; // when "max_distance == min_distance", we set the normalized_d to 0 so that we can sufficiently explore those testcases whose distance >= 0.
     if (max_distance != min_distance)
