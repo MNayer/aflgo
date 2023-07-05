@@ -2481,11 +2481,11 @@ static u8 run_target(char** argv, u32 timeout) {
 	printf("[run_target] timeout         : %u\n", timeout);
 	printf("[run_target] campaign_timeout: %llu\n", campaign_timeout);
 	if (cur_time - last_exec_time > 2 * timeout) {
-		print("[run_target] increase suspend_time\n");
+		printf("[run_target] increase suspend_time\n");
 		suspend_time += cur_time - last_exec_time - timeout;
 	}
 	if (campaign_timeout && (cur_time - start_time - suspend_time > campaign_timeout)) {
-		print("[run_target] stop_soon\n");
+		printf("[run_target] stop_soon\n");
 		stop_soon = 1;
 	}
 	last_exec_time = cur_time;
