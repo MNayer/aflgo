@@ -182,6 +182,7 @@ EXP_ST u64 total_crashes,             /* Total number of crashes          */
            unique_hangs,              /* Hangs with unique signatures     */
            total_execs,               /* Total execve() calls             */
            start_time,                /* Unix start time (ms)             */
+           suspend_time,              /* Cummulative suspended time (ms)  */
            last_path_time,            /* Time for most recent path (ms)   */
            last_crash_time,           /* Time for most recent crash (ms)  */
            last_hang_time,            /* Time for most recent hang (ms)   */
@@ -2311,9 +2312,13 @@ static u8 run_target(char** argv, u32 timeout) {
 
   static struct itimerval it;
   static u32 prev_timed_out = 0;
+	static u64 last_exec_time = 0;
 
   int status = 0;
   u32 tb4;
+	u64 cur_time;
+
+	if (last_exec_time == 0) last_exec_time = get_cur_time_us();
 
   child_timed_out = 0;
 
@@ -2463,6 +2468,12 @@ static u8 run_target(char** argv, u32 timeout) {
   it.it_value.tv_usec = 0;
 
   setitimer(ITIMER_REAL, &it, NULL);
+
+	cur_time = get_cur_time_us();
+	if (cur_time - last_exec_time > 2 * timeout) {
+		suspend_time += cur_time - last_exec_time - timeout;
+	}
+	last_exec_time = cur_time;
 
   total_execs++;
 
@@ -3204,7 +3215,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 #ifndef SIMPLE_FILES
 
     fn = alloc_printf("%s/queue/id:%06u,%llu,%s", out_dir, queued_paths,
-                      get_cur_time() - start_time,
+                      get_cur_time() - start_time - suspend_time,
                       describe_op(hnb));
 
 #else
@@ -3289,7 +3300,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 #ifndef SIMPLE_FILES
 
       fn = alloc_printf("%s/hangs/id:%06llu,%llu,%s", out_dir,
-                        unique_hangs, get_cur_time() - start_time,
+                        unique_hangs, get_cur_time() - start_time - suspend_time,
                         describe_op(0));
 
 #else
@@ -3334,7 +3345,7 @@ keep_as_crash:
 #ifndef SIMPLE_FILES
 
       fn = alloc_printf("%s/crashes/id:%06llu,%llu,sig:%02u,%s", out_dir,
-                        unique_crashes, get_cur_time() - start_time,
+                        unique_crashes, get_cur_time() - start_time - suspend_time,
                         kill_signal, describe_op(0));
 
 #else
@@ -4812,7 +4823,7 @@ static u32 calculate_score(struct queue_entry* q) {
   }
 
   u64 cur_ms = get_cur_time();
-  u64 t = (cur_ms - start_time) / 1000;
+  u64 t = (cur_ms - start_time - suspend_time) / 1000;
   double progress_to_tx = ((double) t) / ((double) t_x * 60.0);
 
   double T;
