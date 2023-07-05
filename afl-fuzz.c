@@ -95,6 +95,7 @@ EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
 
 EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
 static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
+static u64 campaign_timeout = 0;      /* Timeout fuzzing campaign (ms)    */
 
 EXP_ST u64 mem_limit  = MEM_LIMIT;    /* Memory cap for child (MB)        */
 
@@ -2473,6 +2474,9 @@ static u8 run_target(char** argv, u32 timeout) {
 	if (cur_time - last_exec_time > 2 * timeout) {
 		suspend_time += cur_time - last_exec_time - timeout;
 	}
+	if (campaign_timeout && (cur_time - start_time - suspend_time > campaign_timeout)) {
+		stop_soon = 1;
+	}
 	last_exec_time = cur_time;
 
   total_execs++;
@@ -3489,6 +3493,7 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
 
   fprintf(f, "start_time        : %llu\n"
              "last_update       : %llu\n"
+             "suspend_time      : %llu\n"
              "fuzzer_pid        : %u\n"
              "cycles_done       : %llu\n"
              "execs_done        : %llu\n"
@@ -3515,7 +3520,7 @@ static void write_stats_file(double bitmap_cvg, double stability, double eps) {
              "afl_version       : " VERSION "\n"
              "target_mode       : %s%s%s%s%s%s%s\n"
              "command_line      : %s\n",
-             start_time / 1000, get_cur_time() / 1000, getpid(),
+             start_time / 1000, get_cur_time() / 1000, suspend_time / 1000, getpid(),
              queue_cycle ? (queue_cycle - 1) : 0, total_execs, eps,
              queued_paths, queued_favored, queued_discovered, queued_imported,
              max_depth, current_entry, pending_favored, pending_not_fuzzed,
@@ -7198,6 +7203,8 @@ static void usage(u8* argv0) {
        "  -c min        - time from start when SA enters exploitation\n"
        "                  in secs (s), mins (m), hrs (h), or days (d)\n"
        "  -D            - disable directed fuzzing (set mode to 'coverage guided')\n\n"
+       "  -q min        - timeout for the whole fuzzing campaign\n"
+       "                  in secs (s), mins (m), hrs (h), or days (d)\n"
        "  -F frame0     - enable first crash mode (stop when the first crash with matching frame0 was found)\n\n"
 
        "Execution control settings:\n\n"
@@ -8090,6 +8097,28 @@ int main(int argc, char** argv) {
       case 'D':
 
         mode_coverage = 1;
+
+        break;
+
+      case 'q': { /* timeout for whole fuzzing campaign */
+
+          u8 suffix = 'm';
+
+          if (sscanf(optarg, "%u%c", &campaign_timeout, &suffix) < 1 ||
+              optarg[0] == '-') FATAL("Bad syntax used for -q");
+
+          switch (suffix) {
+
+            case 's': campaign_timeout *= 1000; break;
+            case 'm': campaign_timeout *= 60 * 1000; break;
+            case 'h': campaign_timeout *= 60 * 60 * 1000; break;
+            case 'd': campaign_timeout *= 24 * 60 * 60 * 1000; break;
+
+            default:  FATAL("Unsupported suffix or bad syntax for -q");
+
+          }
+
+        }
 
         break;
 
