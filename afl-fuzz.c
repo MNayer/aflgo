@@ -2319,7 +2319,7 @@ static u8 run_target(char** argv, u32 timeout) {
   u32 tb4;
 	u64 cur_time;
 
-	if (last_exec_time == 0) last_exec_time = get_cur_time_us();
+	if (last_exec_time == 0) last_exec_time = get_cur_time();
 	printf("[run_target] start\n");
 	printf("[run_target] last_exec_time: %llu\n", last_exec_time);
 
@@ -2472,7 +2472,7 @@ static u8 run_target(char** argv, u32 timeout) {
 
   setitimer(ITIMER_REAL, &it, NULL);
 
-	cur_time = get_cur_time_us();
+	cur_time = get_cur_time();
 	printf("[run_target] checks \n");
 	printf("[run_target] start_time      : %llu\n", start_time);
 	printf("[run_target] last_exec_time  : %llu\n", last_exec_time);
