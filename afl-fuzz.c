@@ -7187,6 +7187,7 @@ static void usage(u8* argv0) {
        "  -c min        - time from start when SA enters exploitation\n"
        "                  in secs (s), mins (m), hrs (h), or days (d)\n"
        "  -D            - disable directed fuzzing (set mode to 'coverage guided')\n\n"
+       "  -F frame0     - enable first crash mode (stop when the first crash with matching frame0 was found)\n\n"
 
        "Execution control settings:\n\n"
 
@@ -8078,6 +8079,12 @@ int main(int argc, char** argv) {
       case 'D':
 
         mode_coverage = 1;
+
+        break;
+
+      case 'F':
+
+        // Todo implement
 
         break;
 
