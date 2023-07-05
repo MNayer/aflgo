@@ -2320,8 +2320,6 @@ static u8 run_target(char** argv, u32 timeout) {
 	u64 cur_time;
 
 	if (last_exec_time == 0) last_exec_time = get_cur_time();
-	printf("[run_target] start\n");
-	printf("[run_target] last_exec_time: %llu\n", last_exec_time);
 
   child_timed_out = 0;
 
@@ -2473,19 +2471,10 @@ static u8 run_target(char** argv, u32 timeout) {
   setitimer(ITIMER_REAL, &it, NULL);
 
 	cur_time = get_cur_time();
-	printf("[run_target] checks \n");
-	printf("[run_target] start_time      : %llu\n", start_time);
-	printf("[run_target] last_exec_time  : %llu\n", last_exec_time);
-	printf("[run_target] cur_time        : %llu\n", cur_time);
-	printf("[run_target] suspend_time    : %llu\n", suspend_time);
-	printf("[run_target] timeout         : %u\n", timeout);
-	printf("[run_target] campaign_timeout: %llu\n", campaign_timeout);
 	if (cur_time - last_exec_time > 2 * timeout) {
-		printf("[run_target] increase suspend_time\n");
 		suspend_time += cur_time - last_exec_time - timeout;
 	}
 	if (campaign_timeout && (cur_time - start_time - suspend_time > campaign_timeout)) {
-		printf("[run_target] stop_soon\n");
 		stop_soon = 1;
 	}
 	last_exec_time = cur_time;
