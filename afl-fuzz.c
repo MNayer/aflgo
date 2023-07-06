@@ -3386,7 +3386,10 @@ keep_as_crash:
 
 	if (*hook_cmd) {
 		command = alloc_printf("%s %s %s", hook_cmd, target_path, fn);
-		if (!system(command)) stop_soon = 1;
+		if (system(command)) {
+			OKF("Command exited with nonzero code. Exiting.");
+			stop_soon = 1;
+		}
 	}
 
 	ck_free(command);
