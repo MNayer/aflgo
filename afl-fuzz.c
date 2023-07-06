@@ -3201,7 +3201,7 @@ static void write_crash_readme(void) {
 
 static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
 
-  u8  *fn = "";
+  u8  *fn = "", *command = "";
   u8  hnb;
   s32 fd;
   u8  keeping = 0, res;
@@ -3380,6 +3380,14 @@ keep_as_crash:
   ck_write(fd, mem, len, fn);
   close(fd);
 
+	/* Create a traceback for the crash we just saved.
+	   this assumes the traceback python script has been copied
+		 to some directory which is in PATH */
+
+	command = alloc_printf("traceback %s %s/tracebacks %s", target_path, fn, out_dir);
+	if (!system(command)) FATAL("Unable to create traceback (traceback not in PATH?)");
+
+	ck_free(command);
   ck_free(fn);
 
   return keeping;
