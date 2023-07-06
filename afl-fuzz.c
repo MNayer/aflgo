@@ -93,6 +93,8 @@ EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
           *target_path,               /* Path to target binary            */
           *orig_cmdline;              /* Original command line            */
 
+u8 hook_cmd[COMMAND_SIZE] = { 0 };    /* Crash hook command               */
+
 EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
 static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
 static u64 campaign_timeout = 0;      /* Timeout fuzzing campaign (ms)    */
@@ -3380,12 +3382,12 @@ keep_as_crash:
   ck_write(fd, mem, len, fn);
   close(fd);
 
-	/* Create a traceback for the crash we just saved.
-	   this assumes the traceback python script has been copied
-		 to some directory which is in PATH */
+	/* Execute the crash hook command if one is specified */
 
-	command = alloc_printf("traceback %s %s/tracebacks %s", target_path, fn, out_dir);
-	if (!system(command)) FATAL("Unable to create traceback (traceback not in PATH?)");
+	if (*hook_cmd) {
+		command = alloc_printf("%s %s %s", hook_cmd, target_path, fn);
+		if (!system(command)) stop_soon = 1;
+	}
 
 	ck_free(command);
   ck_free(fn);
@@ -7213,7 +7215,10 @@ static void usage(u8* argv0) {
        "  -D            - disable directed fuzzing (set mode to 'coverage guided')\n\n"
        "  -q min        - timeout for the whole fuzzing campaign\n"
        "                  in secs (s), mins (m), hrs (h), or days (d)\n"
-       "  -F frame0     - enable first crash mode (stop when the first crash with matching frame0 was found)\n\n"
+       "  -h command    - command that is executed everytime a crash is found.\n"
+       "                  If the command returns a non-zero exit code, the fuzzing stops\n"
+       "                  The following arguments are passed to the script:\n"
+       "                  <target_path> <testcase path>\n"
 
        "Execution control settings:\n\n"
 
@@ -7897,7 +7902,7 @@ int main(int argc, char** argv) {
   gettimeofday(&tv, &tz);
   srandom(tv.tv_sec ^ tv.tv_usec ^ getpid());
 
-  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnDCB:q:F:S:M:x:Qz:c:")) > 0)
+  while ((opt = getopt(argc, argv, "+i:o:f:m:t:T:dnDCB:q:h:S:M:x:Qz:c:")) > 0)
 
     switch (opt) {
 
@@ -8130,9 +8135,10 @@ int main(int argc, char** argv) {
 
         break;
 
-      case 'F':
+      case 'h':
 
-        // Todo implement
+				if (strlen(optarg) >= COMMAND_SIZE) FATAL("Command string to large");
+        strncpy(hook_cmd, optarg, sizeof(hook_cmd));
 
         break;
 

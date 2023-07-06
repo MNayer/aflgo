@@ -47,6 +47,10 @@
 
 #define EXEC_TM_ROUND       20
 
+/* Maximum size for the crash hook command string: */
+
+#define COMMAND_SIZE        512
+
 /* Default memory limit for child process (MB): */
 
 #ifndef __x86_64__ 
