@@ -8149,6 +8149,8 @@ int main(int argc, char** argv) {
 
         strncpy(&hook_cmd[hook_cmd_ctr * COMMAND_SIZE], optarg, COMMAND_SIZE);
 
+				hook_cmd_ctr++;
+
         break;
 
       default:
