@@ -3386,9 +3386,11 @@ keep_as_crash:
 
 	/* Execute the specified crash hook commands */
 
+	OKF("Found crash, execute commands");
 	for (i=0; i < hook_cmd_ctr; i++) {
 		u8 *cur_cmd = &hook_cmd[i * COMMAND_SIZE];
 		command = alloc_printf("%s %s %s", cur_cmd, target_path, fn);
+		OKF("Execute command %d: '%s'", i, cur_cmd);
 		if (system(command)) {
 			OKF("Command exited with nonzero code. Exiting.");
 			stop_soon = 1;
