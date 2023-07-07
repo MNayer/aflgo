@@ -3393,9 +3393,9 @@ keep_as_crash:
 			OKF("Command exited with nonzero code. Exiting.");
 			stop_soon = 1;
 		}
+		ck_free(command);
 	}
 
-	ck_free(command);
   ck_free(fn);
 
   return keeping;
