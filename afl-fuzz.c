@@ -93,7 +93,8 @@ EXP_ST u8 *in_dir,                    /* Input directory with test cases  */
           *target_path,               /* Path to target binary            */
           *orig_cmdline;              /* Original command line            */
 
-u8 hook_cmd[COMMAND_SIZE] = { 0 };    /* Crash hook command               */
+u8 hook_cmd[COMMAND_SIZE * MAX_COMMANDS] = { 0 };    /* Crash hook command               */
+u8 hook_cmd_ctr = 0;                  /* Number specified hook commands   */
 
 EXP_ST u32 exec_tmout = EXEC_TIMEOUT; /* Configurable exec timeout (ms)   */
 static u32 hang_tmout = EXEC_TIMEOUT; /* Timeout used for hang det (ms)   */
@@ -3207,6 +3208,7 @@ static u8 save_if_interesting(char** argv, void* mem, u32 len, u8 fault) {
   u8  hnb;
   s32 fd;
   u8  keeping = 0, res;
+	u8 i = 0;
 
   if (fault == crash_mode) {
 
@@ -3382,10 +3384,11 @@ keep_as_crash:
   ck_write(fd, mem, len, fn);
   close(fd);
 
-	/* Execute the crash hook command if one is specified */
+	/* Execute the specified crash hook commands */
 
-	if (*hook_cmd) {
-		command = alloc_printf("%s %s %s", hook_cmd, target_path, fn);
+	for (i=0; i < hook_cmd_ctr; i++) {
+		u8 *cur_cmd = &hook_cmd[i * COMMAND_SIZE];
+		command = alloc_printf("%s %s %s", cur_cmd, target_path, fn);
 		if (system(command)) {
 			OKF("Command exited with nonzero code. Exiting.");
 			stop_soon = 1;
@@ -8139,9 +8142,10 @@ int main(int argc, char** argv) {
         break;
 
       case 'h':
-
 				if (strlen(optarg) >= COMMAND_SIZE) FATAL("Command string to large");
-        strncpy(hook_cmd, optarg, sizeof(hook_cmd));
+				if (hook_cmd_ctr >= MAX_COMMANDS) FATAL("Too many hooks.");
+
+        strncpy(&hook_cmd[hook_cmd_ctr * COMMAND_SIZE], optarg, COMMAND_SIZE);
 
         break;
 
