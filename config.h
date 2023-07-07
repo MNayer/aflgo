@@ -47,6 +47,10 @@
 
 #define EXEC_TM_ROUND       20
 
+/* Maximum number of crash hooks */
+
+#define MAX_COMMANDS        4
+
 /* Maximum size for the crash hook command string: */
 
 #define COMMAND_SIZE        512
